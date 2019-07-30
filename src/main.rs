@@ -32,8 +32,8 @@ fn rule_set() -> HashMap<Piece,Vec<MoveRule>> {
     let mut rule_set: HashMap<Piece,Vec<MoveRule>> = HashMap::new();
     
     rule_set.insert(Piece::Pawn, vec![
-        MoveRule::Absolute { initial_rank: 2, delta: Vector{ x: 0, y: 2 } },
-        MoveRule::Relative( Vector { x: 0, y: 2 } )
+        //MoveRule::Absolute { initial_rank: 2, delta: Vector{ x: 0, y: 2 } },
+        MoveRule::Relative( Vector { x: 0, y: 1 } )
     ]);
 
     rule_set.insert(Piece::Knight, vec![
@@ -62,8 +62,33 @@ fn rule_set() -> HashMap<Piece,Vec<MoveRule>> {
     return rule_set;
 }
 
+fn find_moves(piece: Piece, location: &Vector) -> Vec<Vector> {
+    let _rule_set = rule_set();
+    let _template_move = &_rule_set.get(&piece).unwrap()[0];
+
+    match _template_move {
+        MoveRule::Relative(vector) => return vec![location.add(&vector)],
+        _ => vec![]
+    }
+}
+
+impl Vector {
+    fn add(&self, other: &Vector) -> Vector {
+        return Vector { x: self.x + other.x, y: self.y + other.y };
+    }
+}
+
 #[test]
 fn rule_set_contains_kings_moves() {
     let _rules = rule_set();
     assert!(_rules.contains_key(&Piece::King));
+}
+
+
+
+#[test]
+fn pawn_moves_one_forward() {
+    let possible_moves = find_moves(Piece::Pawn, &Vector { x: 3, y: 3 });
+    println!("{:?}",possible_moves);
+    assert!(possible_moves == vec![Vector{ x: 3, y: 4 }]);
 }
