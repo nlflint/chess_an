@@ -28,6 +28,12 @@ enum Piece {
     King
 }
 
+enum Rotate {
+    Ninety,
+    OneEighty,
+    TwoSeventy
+}
+
 fn rule_set() -> HashMap<Piece,Vec<MoveRule>> {
     let mut rule_set: HashMap<Piece,Vec<MoveRule>> = HashMap::new();
     
@@ -75,6 +81,14 @@ fn find_moves(piece: Piece, location: &Vector) -> Vec<Vector> {
                 }
                 return vec![];
             },
+            MoveRule::RelativeRotatable(vector) => {
+                let _first_move = location.add(&vector);
+                return vec![_first_move,
+                    vector.rotate(location, Rotate::Ninety),
+                    vector.rotate(location, Rotate::OneEighty),
+                    vector.rotate(location, Rotate::TwoSeventy)
+                ];
+            },
             _ => vec![]
         }
     }).collect();
@@ -85,6 +99,14 @@ fn find_moves(piece: Piece, location: &Vector) -> Vec<Vector> {
 impl Vector {
     fn add(&self, other: &Vector) -> Vector {
         return Vector { x: self.x + other.x, y: self.y + other.y };
+    }
+
+    fn rotate(&self, pivot: &Vector, rotation: Rotate) -> Vector {
+        match rotation {
+            Rotate::Ninety => Vector {x: pivot.x + self.y, y: pivot.y - self.x},
+            Rotate::OneEighty => Vector {x: pivot.x - self.x, y: pivot.y - self.y},
+            Rotate::TwoSeventy => Vector {x: pivot.x - self.y, y: pivot.y + self.x}
+        }
     }
 }
 
@@ -108,5 +130,21 @@ fn second_rank_pawn_can_make_two_moves() {
     assert!(possible_moves == vec![
         Vector{ x: 7, y: 4 },
         Vector{ x: 7, y: 3 }
+    ]);
+}
+
+#[test]
+fn knight() {
+    let possible_moves = find_moves(Piece::Knight, &Vector { x: 5, y: 3 });
+    println!("{:?}",possible_moves);
+    assert!(possible_moves == vec![
+        Vector{ x: 6, y: 5 },
+        Vector{ x: 7, y: 2 },
+        Vector{ x: 4, y: 1 },
+        Vector{ x: 3, y: 4 },
+        Vector{ x: 7, y: 4 },
+        Vector{ x: 6, y: 1 },
+        Vector{ x: 3, y: 2 },
+        Vector{ x: 4, y: 5 }
     ]);
 }
