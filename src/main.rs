@@ -6,16 +6,16 @@ fn main() {
 
 #[derive(Debug, PartialEq)]
 enum MoveRule {
-    Absolute{ required_rank: usize, vector: Vector },
+    Absolute{ required_rank: isize, vector: Vector },
     Relative(Vector),
     RelativeRotatable(Vector),
     RelativeRotatableScalable(Vector)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 struct Vector {
-	x: usize,
-	y: usize
+	x: isize,
+	y: isize
 }
 
 #[derive(Hash, Eq, PartialEq, Debug)]
@@ -38,7 +38,7 @@ fn rule_set() -> HashMap<Piece,Vec<MoveRule>> {
     let mut rule_set: HashMap<Piece,Vec<MoveRule>> = HashMap::new();
     
     rule_set.insert(Piece::Pawn, vec![
-        MoveRule::Absolute { required_rank: 2, vector: Vector{ x: 0, y: 2 } },
+        MoveRule::Absolute { required_rank: 2isize, vector: Vector{ x: 0, y: 2 } },
         MoveRule::Relative( Vector { x: 0, y: 1 } )
     ]);
 
@@ -89,7 +89,15 @@ fn find_moves(piece: Piece, location: &Vector) -> Vec<Vector> {
                     vector.rotate(location, Rotate::TwoSeventy)
                 ];
             },
-            _ => vec![]
+            MoveRule::RelativeRotatableScalable(vector) => {
+                let origin = &Vector { x: 0, y: 0 };
+                return [
+                    &vector.multiply(location)[..],
+                    &vector.rotate(origin, Rotate::Ninety).multiply(location)[..],
+                    &vector.rotate(origin, Rotate::OneEighty).multiply(location)[..],
+                    &vector.rotate(origin, Rotate::TwoSeventy).multiply(location)[..]
+                ].concat();
+            }
         }
     }).collect();
     
@@ -107,6 +115,17 @@ impl Vector {
             Rotate::OneEighty => Vector {x: pivot.x - self.x, y: pivot.y - self.y},
             Rotate::TwoSeventy => Vector {x: pivot.x - self.y, y: pivot.y + self.x}
         }
+    }
+    
+    fn scale(&self, center: &Vector, scaler: isize) -> Vector {
+        Vector {x: center.x + (self.x * scaler), y: center.y + (self.y * scaler)}
+    }
+
+    fn multiply(&self, center: &Vector) -> Vec<Vector> {
+        return (1..8)
+            .into_iter()
+            .map(|scaler| self.scale(center, scaler))
+            .collect();
     }
 }
 
@@ -163,4 +182,18 @@ fn king() {
         Vector{ x: 0, y: 0 },
         Vector{ x: 0, y: 2 }
     ]);
+}
+
+#[test]
+fn castle() {
+    let possible_moves = find_moves(Piece::Castle, &Vector { x: 3, y: 2 });
+    println!("{:?}",possible_moves);
+    assert!(possible_moves.contains(&Vector { x: 3, y: 3 }));
+    assert!(possible_moves.contains(&Vector { x: 3, y: 7 }));
+    assert!(possible_moves.contains(&Vector { x: 4, y: 2 }));
+    assert!(possible_moves.contains(&Vector { x: 7, y: 2 }));
+    assert!(possible_moves.contains(&Vector { x: 3, y: 1 }));
+    assert!(possible_moves.contains(&Vector { x: 3, y: 0 }));
+    assert!(possible_moves.contains(&Vector { x: 2, y: 2 }));
+    assert!(possible_moves.contains(&Vector { x: 0, y: 2 }));
 }
