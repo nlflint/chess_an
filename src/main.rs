@@ -148,3 +148,19 @@ fn knight() {
         Vector{ x: 4, y: 5 }
     ]);
 }
+
+#[test]
+fn king() {
+    let possible_moves = find_moves(Piece::King, &Vector { x: 1, y: 1 });
+    println!("{:?}",possible_moves);
+    assert!(possible_moves == vec![
+        Vector{ x: 1, y: 2 },
+        Vector{ x: 2, y: 1 },
+        Vector{ x: 1, y: 0 },
+        Vector{ x: 0, y: 1 },
+        Vector{ x: 2, y: 2 },
+        Vector{ x: 2, y: 0 },
+        Vector{ x: 0, y: 0 },
+        Vector{ x: 0, y: 2 }
+    ]);
+}
