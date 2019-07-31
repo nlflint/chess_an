@@ -1,10 +1,6 @@
 use std::collections::HashMap;
 
-fn main() {
-    println!("Hello, world!");
-}
-
-#[derive(Debug, PartialEq)]
+[derive(Debug, PartialEq)]
 enum MoveRule {
     Absolute{ required_rank: isize, vector: Vector },
     Relative(Vector),
@@ -154,10 +150,11 @@ fn rule_set() -> HashMap<Piece,Vec<MoveRule>> {
 
 
 fn find_moves(piece: Piece, location: &Vector) -> Vec<Vector> {
-    let _rule_set = rule_set();
-    let _rules = _rule_set.get(&piece).unwrap().into_iter();
     let _board = standard_chess_board();
-    return _rules
+    return rule_set()
+        .get(&piece)
+        .unwrap()
+        .into_iter()
         .flat_map(|rule| rule.project(location))
         .filter(|vector| _board.contains(vector))
         .collect();
